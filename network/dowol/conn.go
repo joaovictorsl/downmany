@@ -10,11 +10,11 @@ import (
 )
 
 type DowolPeerConn struct {
-	addr net.Addr
-	conn net.Conn
-	lengthBuf []byte
+	addr       net.Addr
+	conn       net.Conn
+	lengthBuf  []byte
 	payloadBuf []byte
-	mutex *sync.Mutex
+	mutex      *sync.Mutex
 }
 
 func NewDowolPeerConn(addr string) (*DowolPeerConn, error) {
@@ -24,11 +24,11 @@ func NewDowolPeerConn(addr string) (*DowolPeerConn, error) {
 	}
 
 	return &DowolPeerConn{
-		addr: conn.RemoteAddr(),
-		conn: conn,
-		lengthBuf: make([]byte, 4),
+		addr:       conn.RemoteAddr(),
+		conn:       conn,
+		lengthBuf:  make([]byte, 4),
 		payloadBuf: make([]byte, 10000),
-		mutex: &sync.Mutex{},
+		mutex:      &sync.Mutex{},
 	}, nil
 }
 
@@ -55,11 +55,11 @@ func (dpc *DowolPeerConn) readMessage() (uint32, error) {
 	return bytesRead, nil
 }
 
-func (dpc *DowolPeerConn) Join() error {
+func (dpc *DowolPeerConn) Join(port uint16) error {
 	dpc.mutex.Lock()
 	defer dpc.mutex.Unlock()
 
-	signal := messages.NewJoinSignal()
+	signal := messages.NewJoinSignal(port)
 	n := signal.Encode(dpc.payloadBuf)
 	_, err := dpc.conn.Write(dpc.payloadBuf[1:n])
 	return err
@@ -116,4 +116,3 @@ func (dpc *DowolPeerConn) HasFile(hash uint64) (bool, error) {
 
 	return res.Has, nil
 }
-

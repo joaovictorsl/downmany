@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-type GetIPsRequest struct {}
+type GetIPsRequest struct{}
 
 func NewGetIPsRequest() GetIPsRequest {
 	return GetIPsRequest{}
@@ -32,18 +32,18 @@ func NewGetIPsResponse(ips []net.Addr) GetIPsResponse {
 }
 
 func DecodeGetIPsResponse(raw []byte) GetIPsResponse {
-	totalIPs := len(raw)/6 // an IP takes 6 bytes
+	totalIPs := len(raw) / 6 // an IP takes 6 bytes
 	ips := make([]net.Addr, totalIPs)
 
-	for i := range totalIPs {
+	for i := 0; i < totalIPs; i++ {
 		startAddr := i * 6
 		startPort := startAddr + 4 // 4 is length of addr
 		ips[i] = &net.TCPAddr{
-			IP: raw[startAddr:startPort],
-			Port: int(binary.BigEndian.Uint16(raw[startPort:startPort+2])),
+			IP:   raw[startAddr:startPort],
+			Port: int(binary.BigEndian.Uint16(raw[startPort : startPort+2])),
 		}
 	}
-	
+
 	return GetIPsResponse{
 		ips,
 	}
@@ -51,7 +51,7 @@ func DecodeGetIPsResponse(raw []byte) GetIPsResponse {
 
 func (msg GetIPsResponse) Encode(buf []byte) uint32 {
 	payloadLen := uint32(len(msg.IPs)) * 6 // 6 bytes per IP (addr + port)
-	payloadLen = payloadLen + 1 // byte for msg id
+	payloadLen = payloadLen + 1            // byte for msg id
 	// Put payload length
 	binary.BigEndian.PutUint32(buf, payloadLen)
 	buf[4] = GET_IPS_MSG_ID
@@ -66,4 +66,3 @@ func (msg GetIPsResponse) Encode(buf []byte) uint32 {
 
 	return 4 + payloadLen
 }
-

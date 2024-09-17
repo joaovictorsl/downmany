@@ -9,10 +9,10 @@ import (
 
 func TestEncodeJoinSignal(t *testing.T) {
 	// Setup
-	expected := []byte{0, 0, 0, 1, 0}
+	expected := []byte{0, 0, 0, 3, 0, 0, 80}
 	buf := make([]byte, len(expected))
 	// Action
-	n := messages.NewJoinSignal().Encode(buf)
+	n := messages.NewJoinSignal(80).Encode(buf)
 	// Assert
 	if n != uint32(len(expected)) {
 		t.Errorf("expected JoinSignal's encoding to write %d bytes, wrote %d", len(expected), n)
