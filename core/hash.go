@@ -3,11 +3,13 @@ package core
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"path/filepath"
 )
 
 type Pair struct {
-	sum  int64
+	sum  uint64
 	path string
 }
 
@@ -28,34 +30,35 @@ func sum(filePath string, ch chan Pair) {
 		panic(err)
 	}
 
-	_sum := 0
+	_sum := uint64(0)
 	for _, b := range data {
-		_sum += int(b)
+		_sum += uint64(b)
 	}
-	ch <- Pair{int64(_sum), filePath}
+	ch <- Pair{_sum, filePath}
 }
 
 // print the totalSum for all files and the files with equal sum
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: go run main.go <file1> <file2> ...")
-		return
-	}
-
+func Sum() (map[uint64]string, error) {
 	ch := make(chan Pair)
-	sums := make(map[int][]string)
-	for _, path := range os.Args[1:] {
-		go sum(path, ch)
+	allSums := make(map[uint64]string)
+
+	dataset := "./dataset"
+	entries, err := os.ReadDir(dataset)
+	if err != nil {
+		log.Println("Directory './dataset' does not exist!")
+		return nil, err
 	}
 
-	for i := 0; i < 11; i++ {
+	for _, path := range entries {
+		fullPath := filepath.Join(dataset, path.Name())
+		go sum(fullPath, ch)
+	}
+
+	for i := 0; i < 10; i++ {
 		v := <-ch
 		path := v.path
-		index := int(v.sum)
-		sums[index] = append(sums[index], path)
+		index := v.sum
+		allSums[index] = path
 	}
-
-	for sum, files := range sums {
-		fmt.Printf("Sum %d: %v\n", sum, files)
-	}
+	return allSums, nil
 }

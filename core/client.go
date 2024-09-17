@@ -8,10 +8,15 @@ import (
 	"github.com/joaovictorsl/downmany/network/dowol"
 )
 
-// TODO: Declare file sums map
+var hashMap map[uint64]string
 
 func Connect() {
-	// TODO: Calculate file sums and store them in a map
+	sumsMap, err := Sum()
+	hashMap = sumsMap
+	if err != nil {
+		panic(err)
+	}
+
 	serverConnection, err := dowol.NewDowolPeerConn("192.168.1.1:8000") // TODO: Get the ip from CLI param
 	if err != nil {
 		panic(err)
