@@ -65,7 +65,7 @@ func (dpc *DowolPeerConn) Join(port uint16) error {
 	return err
 }
 
-func (dpc *DowolPeerConn) GetIPs() ([]net.Addr, error) {
+func (dpc *DowolPeerConn) GetIPs() ([]*net.TCPAddr, error) {
 	dpc.mutex.Lock()
 	defer dpc.mutex.Unlock()
 
