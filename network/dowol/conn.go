@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/joaovictorsl/downmany/network/dowol/messages"
 )
@@ -13,6 +14,7 @@ type DowolPeerConn struct {
 	conn net.Conn
 	lengthBuf []byte
 	payloadBuf []byte
+	mutex *sync.Mutex
 }
 
 func NewDowolPeerConn(addr string) (*DowolPeerConn, error) {
@@ -26,6 +28,7 @@ func NewDowolPeerConn(addr string) (*DowolPeerConn, error) {
 		conn: conn,
 		lengthBuf: make([]byte, 4),
 		payloadBuf: make([]byte, 10000),
+		mutex: &sync.Mutex{},
 	}, nil
 }
 
@@ -53,13 +56,19 @@ func (dpc *DowolPeerConn) readMessage() (uint32, error) {
 }
 
 func (dpc *DowolPeerConn) Join() error {
+	dpc.mutex.Lock()
+	defer dpc.mutex.Unlock()
+
 	signal := messages.NewJoinSignal()
 	n := signal.Encode(dpc.payloadBuf)
-	_, err := dpc.conn.Write(dpc.payloadBuf[:n])
+	_, err := dpc.conn.Write(dpc.payloadBuf[1:n])
 	return err
 }
 
 func (dpc *DowolPeerConn) GetIPs() ([]net.Addr, error) {
+	dpc.mutex.Lock()
+	defer dpc.mutex.Unlock()
+
 	req := messages.NewGetIPsRequest()
 	n := req.Encode(dpc.payloadBuf)
 
@@ -77,12 +86,15 @@ func (dpc *DowolPeerConn) GetIPs() ([]net.Addr, error) {
 		return nil, fmt.Errorf("expected to receive message with id %d, got %d", messages.HAS_MSG_ID, dpc.payloadBuf[0])
 	}
 
-	res := messages.DecodeGetIPsResponse(dpc.payloadBuf[:n])
+	res := messages.DecodeGetIPsResponse(dpc.payloadBuf[1:n])
 
 	return res.IPs, nil
 }
 
 func (dpc *DowolPeerConn) HasFile(hash uint64) (bool, error) {
+	dpc.mutex.Lock()
+	defer dpc.mutex.Unlock()
+
 	req := messages.NewHasFileRequest(hash)
 	n := req.Encode(dpc.payloadBuf)
 
@@ -100,7 +112,7 @@ func (dpc *DowolPeerConn) HasFile(hash uint64) (bool, error) {
 		return false, fmt.Errorf("expected to receive message with id %d, got %d", messages.HAS_MSG_ID, dpc.payloadBuf[0])
 	}
 
-	res := messages.DecodeHasFileResponse(dpc.payloadBuf[:n])
+	res := messages.DecodeHasFileResponse(dpc.payloadBuf[1:n])
 
 	return res.Has, nil
 }
