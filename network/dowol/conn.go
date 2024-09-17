@@ -116,3 +116,7 @@ func (dpc *DowolPeerConn) HasFile(hash uint64) (bool, error) {
 
 	return res.Has, nil
 }
+
+func (dpc *DowolPeerConn) GetAddr() net.Addr {
+	return dpc.addr
+}
