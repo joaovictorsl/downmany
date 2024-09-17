@@ -10,31 +10,37 @@ import (
 
 var hashMap map[uint64]string
 
+func treat(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+var port uint16 = 3000
+
 func Connect() {
 	sumsMap, err := Sum()
 	hashMap = sumsMap
-	if err != nil {
-		panic(err)
-	}
+	treat(err)
+	go receive()
 
-	serverConnection, err := dowol.NewDowolPeerConn("192.168.1.1:8000") // TODO: Get the ip from CLI param
-	if err != nil {
-		panic(err)
-	}
+	var serverIp string = "192.168.1.1:8000"
+	serverConnection, err := dowol.NewDowolPeerConn(serverIp) // TODO: Get the ip from CLI param
+	treat(err)
 
+	serverConnection.Join(port) // Joins the server, only then starts renewing
 	go renew(serverConnection)
 
 	ips, err := serverConnection.GetIPs()
-	if err != nil {
-		panic(err)
-	}
+	treat(err)
 
 	clientConnections, failedConnectionsIps := makeConnections(ips)
 	if len(failedConnectionsIps) > 0 {
 		fmt.Println(failedConnectionsIps) // TODO: Tratar conexões que falharam
 	}
 
-	connectionsWithFile, failedConnections := getClientsWithFile(clientConnections, 123454312) // TODO: receber caminho do arquivo na chamada do script e calcular o sum
+	var filehash uint64 = 1337086202
+	connectionsWithFile, failedConnections := getClientsWithFile(clientConnections, filehash) // TODO: receber caminho do arquivo na chamada do script e calcular o sum
 	if len(failedConnections) > 0 {
 		fmt.Println(failedConnections) // TODO: Tratar conexões cuja requisição HasFile() falhou
 	}
@@ -47,7 +53,8 @@ func Connect() {
 func renew(serverConnection *dowol.DowolPeerConn) {
 	for {
 		// O parâmetro de porta só é necessário na primeira chamada do join
-		serverConnection.Join(3000) // TODO: Get port from CLI
+		err := serverConnection.Join(port) // TODO: Get port from CLI
+		treat(err)
 		time.Sleep(5 * time.Second)
 	}
 }
@@ -67,12 +74,12 @@ func makeConnections(ips []net.Addr) ([]*dowol.DowolPeerConn, []net.Addr) {
 	return connections, failedConnectionsIps
 }
 
-func getClientsWithFile(clientConnections []*dowol.DowolPeerConn, fileSum uint64) ([]*dowol.DowolPeerConn, []*dowol.DowolPeerConn) {
+func getClientsWithFile(clientConnections []*dowol.DowolPeerConn, fileHash uint64) ([]*dowol.DowolPeerConn, []*dowol.DowolPeerConn) {
 	connectionsWithFile := make([]*dowol.DowolPeerConn, len(clientConnections))
 	failedConnections := make([]*dowol.DowolPeerConn, len(clientConnections))
 
 	for _, clientConnection := range clientConnections {
-		hasFile, err := clientConnection.HasFile(fileSum)
+		hasFile, err := clientConnection.HasFile(fileHash)
 		if err != nil {
 			failedConnections = append(failedConnections, clientConnection)
 		} else if hasFile {
@@ -83,3 +90,32 @@ func getClientsWithFile(clientConnections []*dowol.DowolPeerConn, fileSum uint64
 }
 
 // Open connection in the port used in the Join
+func receive() {
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	treat(err)
+	defer listener.Close()
+
+	fmt.Printf("Escutando na porta %d...\n", port)
+
+	for {
+		conn, err := listener.Accept()
+		treat(err)
+
+		go handleConnection(conn)
+	}
+}
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+
+	var bufferCapacity uint16 = 1024
+	buffer := make([]byte, bufferCapacity)
+	for {
+		n, err := conn.Read(buffer)
+		treat(err)
+
+		if n > 0 {
+			fmt.Printf("Recebido: %s\n", string(buffer[:n]))
+		}
+	}
+}
