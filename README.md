@@ -30,7 +30,7 @@
 
 - `core`
   - lógica da aplicação
-- `adapter`
+- `network`
   - lógica de comunicação
 - `main.go`
   - script para iniciar servidor ou cliente
