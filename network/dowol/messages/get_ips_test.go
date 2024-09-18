@@ -8,13 +8,10 @@ import (
 	"github.com/joaovictorsl/downmany/network/dowol/messages"
 )
 
-func compareAddrSlice(a1, a2 net.Addr) int {
-	aTCP1 := a1.(*net.TCPAddr)
-	aTCP2 := a2.(*net.TCPAddr)
-
-	if slices.Compare(aTCP1.IP, aTCP2.IP) != 0 {
+func compareAddrSlice(a1, a2 *net.TCPAddr) int {
+	if slices.Compare(a1.IP, a2.IP) != 0 {
 		return 1
-	} else if aTCP1.Port != aTCP2.Port {
+	} else if a1.Port != a2.Port {
 		return 1
 	}
 
@@ -38,7 +35,7 @@ func TestGetIPsRequestEncode(t *testing.T) {
 
 func TestNewGetIPsResponse(t *testing.T) {
 	// Setup
-	expected := []net.Addr{
+	expected := []*net.TCPAddr{
 		&net.TCPAddr{
 			IP: []byte{192, 168, 0, 1},
 			Port: 80,
@@ -58,7 +55,7 @@ func TestNewGetIPsResponse(t *testing.T) {
 
 func TestDecodeGetIPsResponse(t *testing.T) {
 	// Setup
-	expected := []net.Addr{
+	expected := []*net.TCPAddr{
 		&net.TCPAddr{
 			IP: []byte{192, 168, 0, 1},
 			Port: 80,
@@ -80,7 +77,7 @@ func TestDecodeGetIPsResponse(t *testing.T) {
 func TestEncodeGetIPsResponse(t *testing.T) {
 	// Setup
 	expected := []byte{0, 0, 0, 13, 1, 192, 168, 0, 1, 0, 80, 192, 168, 0, 2, 0, 82}
-	addrs := []net.Addr{
+	addrs := []*net.TCPAddr{
 		&net.TCPAddr{
 			IP: []byte{192, 168, 0, 1},
 			Port: 80,
