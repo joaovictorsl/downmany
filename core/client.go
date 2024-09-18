@@ -59,9 +59,9 @@ func renew(serverConnection *dowol.DowolPeerConn) {
 	}
 }
 
-func makeConnections(ips []net.Addr) ([]*dowol.DowolPeerConn, []net.Addr) {
+func makeConnections(ips []*net.TCPAddr) ([]*dowol.DowolPeerConn, []*net.TCPAddr) {
 	connections := make([]*dowol.DowolPeerConn, len(ips))
-	failedConnectionsIps := make([]net.Addr, len(ips))
+	failedConnectionsIps := make([]*net.TCPAddr, len(ips))
 
 	for _, ip := range ips {
 		connection, err := dowol.NewDowolPeerConn(ip.String())
