@@ -1,54 +1,53 @@
-version: '3.7'
+version: "3.7"
 services:
-  postgres:
-    image: postgres:16.2-alpine3.19
-    container_name: db-meu-ru
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - 'db:/var/lib/postgresql/data'
-    networks:
-      - common-network
+    server:
+        image: downmany:1.0
+        container_name: downmany-server
+        ports:
+          - 8000:8000
+        networks:
+            - common-network
 
-  meu-ru:
-    build:
-      context: .
-    container_name: meu-ru
-    ports:
-      - 3000:3000
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - PORT=3000
-      - ENVIRONMENT=development
-      - ACCESS_TOKEN_SECRET=randomstring
-      - REFRESH_TOKEN_SECRET=anotherrandomstring
-      - STI_URL=https://api.hom.sti.ufcg.edu.br/ufcg/
-    depends_on:
-      - postgres
-    networks:
-      - common-network
+    client1:
+        image: downmany:1.0
+        container_name: downmany-client1
+        volumes:
+            - "./datasets/dataset1:/app/dataset"
+        ports:
+          - 8081:8080
+        networks:
+            - common-network
+        depends_on:
+            - server
 
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:8.7
-    depends_on:
-      - postgres
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    ports:
-      - 5431:80
-    networks:
-      - common-network
-    volumes:
-      - pgadmindata:/var/lib/pgadmin
+    client2:
+        image: downmany:1.0
+        container_name: downmany-client2
+        volumes:
+            - "./datasets/dataset2:/app/dataset"
+        ports:
+          - 8082:8080
+        networks:
+            - common-network
+        depends_on:
+            - client1
+
+    client3:
+        image: downmany:1.0
+        container_name: downmany-client3
+        volumes:
+            - "./datasets/dataset3:/app/dataset"
+        ports:
+          - 8083:8080
+        networks:
+            - common-network
+        depends_on:
+            - client2
 
 networks:
-  common-network:
-    driver: bridge
+    common-network:
+        driver: bridge
 
 volumes:
-  db:
-  pgadmindata:
+    db:
+    pgadmindata:

@@ -15,6 +15,7 @@ import (
 type cliArgs struct {
 	runAsServer    bool
 	port           uint16
+	clientPort     uint16
 	timeoutSeconds uint
 	fileHash       uint64
 	serverAddr     string
@@ -22,7 +23,8 @@ type cliArgs struct {
 
 func getArgs() cliArgs {
 	runAsServer := flag.Bool("server", false, "Run as server")
-	port := flag.String("port", "8080", "Port to listen on")
+	port := flag.String("port", "8000", "Port to listen on")
+	clientPort := flag.String("clientPort", "8080", "Client port to listen on")
 	timeoutSeconds := flag.Uint("timeout", 5, "Timeout in seconds to be used when cleaning clients")
 	fileHash := flag.Uint64("file_hash", 0, "Hash of the file to be downloaded")
 	serverAddr := flag.String("server_addr", "", "Address of the tracker server")
@@ -40,10 +42,15 @@ func getArgs() cliArgs {
 	if err != nil {
 		panic(err)
 	}
+	clientPortNumber, err := strconv.ParseUint(*clientPort, 10, 16)
+	if err != nil {
+		panic(err)
+	}
 
 	return cliArgs{
 		*runAsServer,
 		uint16(portNumber),
+		uint16(clientPortNumber),
 		*timeoutSeconds,
 		*fileHash,
 		*serverAddr,
@@ -63,7 +70,7 @@ func main() {
 		done := make(chan bool)
 		log.Println("Running as client")
 
-		ips := core.Connect(args.port)
+		ips := core.Connect(args.serverAddr, args.clientPort)
 		fmt.Println("Connected with the server")
 
 		if args.fileHash != 0 {

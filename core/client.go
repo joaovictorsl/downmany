@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/joaovictorsl/downmany/network/dowol"
 )
@@ -16,29 +17,20 @@ func treat(err error) {
 	}
 }
 
-func Connect(port uint16) []*net.TCPAddr {
+func Connect(serverAddr string, port uint16) []*net.TCPAddr {
 	sumsMap, err := Sum("./dataset")
 	hashMap = sumsMap
 	treat(err)
 	go openTCPPort(port)
 
-	// var serverIp string = "192.168.1.1:8000"
-	// serverConnection, err := dowol.NewDowolPeerConn(serverIp) // TODO: Get the ip from CLI param
-	// treat(err)
+	serverConnection, err := dowol.NewDowolPeerConn(serverAddr)
+	treat(err)
 
-	// serverConnection.Join(port) // Joins the server, only then starts renewing
-	// go renew(serverConnection)
+	serverConnection.Join(port) // Joins the server, only then starts renewing
+	go renew(serverConnection, port)
 
-	// ips, err := serverConnection.GetIPs()
-	// treat(err)
-
-	// Mocked server
-	ips := []*net.TCPAddr{
-		{
-			IP:   net.ParseIP("127.0.0.1"),
-			Port: 4000,
-		},
-	}
+	ips, err := serverConnection.GetIPs()
+	treat(err)
 
 	return ips
 }
@@ -56,14 +48,14 @@ func AskForFile(ips []*net.TCPAddr, fileHash uint64) ([]*dowol.DowolPeerConn, []
 
 }
 
-// func renew(serverConnection *dowol.DowolPeerConn) {
-// 	for {
-// 		// O parâmetro de porta só é necessário na primeira chamada do join
-// 		err := serverConnection.Join(port) // TODO: Get port from CLI
-// 		treat(err)
-// 		time.Sleep(5 * time.Second)
-// 	}
-// }
+func renew(serverConnection *dowol.DowolPeerConn, port uint16) {
+	for {
+		// O parâmetro de porta só é necessário na primeira chamada do join
+		err := serverConnection.Join(port) // TODO: Get port from CLI
+		treat(err)
+		time.Sleep(5 * time.Second)
+	}
+}
 
 func makeConnections(ips []*net.TCPAddr) ([]*dowol.DowolPeerConn, []*net.TCPAddr) {
 	connections := make([]*dowol.DowolPeerConn, 0)

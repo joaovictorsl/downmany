@@ -42,6 +42,18 @@
 Buildar imagem
 `docker build -t downmany:1.0 .`
 
+Subir docker compose
+
+`docker compose up -d`
+
+Subir servidor
+
+`docker exec -it SERVER_CONTAINER_ID ./bin/downmany -server`
+
+Subir clientes
+
+`docker exec -it CLIENT_CONTAINER_ID ./bin/downmany -file_hash 123 -server_addr 127.0.0.1:8000`
+
 Executar imagem
 `docker run -p 3000:3000 -it downmany:1.0 ./bin/downmany -file_hash 123 -server_addr 127.0.0.1:8000 -port 1234`
 
