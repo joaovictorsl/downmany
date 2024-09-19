@@ -35,7 +35,13 @@
 - `main.go`
   - script para iniciar servidor ou cliente
 
+## Como rodar a demo
 
+```
+./run_demo.sh
+```
+
+Em seguida veja os logs dos clientes 1~4 e o servidor
 
 ## Docker
 
