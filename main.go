@@ -13,11 +13,11 @@ import (
 //var fileHash uint64 = 1336902055
 
 type cliArgs struct {
-	runAsServer bool
-	port uint16
+	runAsServer    bool
+	port           uint16
 	timeoutSeconds uint
-	fileHash uint64
-	serverAddr string
+	fileHash       uint64
+	serverAddr     string
 }
 
 func getArgs() cliArgs {
@@ -41,7 +41,7 @@ func getArgs() cliArgs {
 		panic(err)
 	}
 
-	return cliArgs {
+	return cliArgs{
 		*runAsServer,
 		uint16(portNumber),
 		*timeoutSeconds,
@@ -60,18 +60,37 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
+		done := make(chan bool)
 		log.Println("Running as client")
 
-		ips := core.Connect()
-		connectionsWithFile, failedConnections := core.AskForFile(ips, args.fileHash)
+		ips := core.Connect(args.port)
+		fmt.Println("Connected with the server")
 
-		if len(failedConnections) > 0 {
-			fmt.Println(failedConnections) // TODO: Tratar conexões cuja requisição HasFile() falhou
+		if args.fileHash != 0 {
+			fmt.Printf("Requesting file with hash %v\n", args.fileHash)
+			connectionsWithFile, failedHasFileConnections, failedConnectionsIps := core.AskForFile(ips, args.fileHash)
+
+			if len(failedConnectionsIps) > 0 {
+				fmt.Println("Failed connections:")
+				fmt.Println(failedConnectionsIps) // TODO: Tratar conexões cuja requisição HasFile() falhou
+			}
+
+			if len(failedHasFileConnections) > 0 {
+				fmt.Println("Failed HasFile connections:")
+				fmt.Println(failedHasFileConnections) // TODO: Tratar conexões cuja requisição HasFile() falhou
+			}
+
+			if len(connectionsWithFile) > 0 {
+				fmt.Println("Connections with file:")
+				for _, connection := range connectionsWithFile {
+					fmt.Println(connection.GetAddr().String())
+				}
+			} else {
+				fmt.Println("There are no connections with the file you requested")
+			}
 		}
 
-		for _, connection := range connectionsWithFile {
-			fmt.Println(connection.GetAddr().String())
-		}
+		<-done
 
 	}
 }

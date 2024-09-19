@@ -16,13 +16,11 @@ func treat(err error) {
 	}
 }
 
-var port uint16 = 3000
-
-func Connect() []*net.TCPAddr {
+func Connect(port uint16) []*net.TCPAddr {
 	sumsMap, err := Sum("./dataset")
 	hashMap = sumsMap
 	treat(err)
-	go openTCPPort()
+	go openTCPPort(port)
 
 	// var serverIp string = "192.168.1.1:8000"
 	// serverConnection, err := dowol.NewDowolPeerConn(serverIp) // TODO: Get the ip from CLI param
@@ -45,14 +43,16 @@ func Connect() []*net.TCPAddr {
 	return ips
 }
 
-func AskForFile(ips []*net.TCPAddr, fileHash uint64) ([]*dowol.DowolPeerConn, []*dowol.DowolPeerConn) {
+func AskForFile(ips []*net.TCPAddr, fileHash uint64) ([]*dowol.DowolPeerConn, []*dowol.DowolPeerConn, []*net.TCPAddr) {
 
 	clientConnections, failedConnectionsIps := makeConnections(ips) // TODO: add channels and goroutines
 	if len(failedConnectionsIps) > 0 {
-		fmt.Println(failedConnectionsIps) // TODO: Tratar conexões que falharam
+		// TODO: Tratar conexões que falharam
 	}
 
-	return getClientsWithFile(clientConnections, fileHash) // TODO: add channels, goroutines and select statement
+	clientsWithFile, clientsWithoutFile := getClientsWithFile(clientConnections, fileHash)
+
+	return clientsWithFile, clientsWithoutFile, failedConnectionsIps // TODO: add channels, goroutines, and select statement
 
 }
 
@@ -82,20 +82,20 @@ func makeConnections(ips []*net.TCPAddr) ([]*dowol.DowolPeerConn, []*net.TCPAddr
 
 func getClientsWithFile(clientConnections []*dowol.DowolPeerConn, fileHash uint64) ([]*dowol.DowolPeerConn, []*dowol.DowolPeerConn) {
 	connectionsWithFile := make([]*dowol.DowolPeerConn, 0)
-	failedConnections := make([]*dowol.DowolPeerConn, 0)
+	failedHasFileConnections := make([]*dowol.DowolPeerConn, 0)
 
 	for _, clientConnection := range clientConnections {
 		hasFile, err := clientConnection.HasFile(fileHash)
 		if err != nil {
-			failedConnections = append(failedConnections, clientConnection)
+			failedHasFileConnections = append(failedHasFileConnections, clientConnection)
 		} else if hasFile {
 			connectionsWithFile = append(connectionsWithFile, clientConnection)
 		}
 	}
-	return connectionsWithFile, failedConnections
+	return connectionsWithFile, failedHasFileConnections
 }
 
-func openTCPPort() {
+func openTCPPort(port uint16) {
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	treat(err)
 	defer listener.Close()
