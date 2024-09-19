@@ -52,7 +52,7 @@ func Sum(dataset string) (map[uint64]string, error) {
 		go sum(fullPath, ch)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < len(entries); i++ {
 		v := <-ch
 		path := v.path
 		index := v.sum
@@ -61,4 +61,3 @@ func Sum(dataset string) (map[uint64]string, error) {
 
 	return allSums, nil
 }
-
