@@ -25,3 +25,8 @@ func (msg JoinSignal) Encode(buf []byte) uint32 {
 	binary.BigEndian.PutUint16(buf[5:], msg.port)
 	return 7
 }
+
+func (msg JoinSignal) Port() uint16 {
+	return msg.port
+}
+

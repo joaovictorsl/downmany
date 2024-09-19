@@ -65,7 +65,7 @@ func (dpc *DowolPeerConn) Join(port uint16) error {
 	return err
 }
 
-func (dpc *DowolPeerConn) GetIPs() ([]net.Addr, error) {
+func (dpc *DowolPeerConn) GetIPs() ([]*net.TCPAddr, error) {
 	dpc.mutex.Lock()
 	defer dpc.mutex.Unlock()
 
@@ -115,4 +115,8 @@ func (dpc *DowolPeerConn) HasFile(hash uint64) (bool, error) {
 	res := messages.DecodeHasFileResponse(dpc.payloadBuf[1:n])
 
 	return res.Has, nil
+}
+
+func (dpc *DowolPeerConn) GetAddr() net.Addr {
+	return dpc.addr
 }
