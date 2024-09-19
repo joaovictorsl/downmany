@@ -19,7 +19,7 @@ func treat(err error) {
 var port uint16 = 3000
 
 func Connect() []*net.TCPAddr {
-	sumsMap, err := Sum()
+	sumsMap, err := Sum("./dataset")
 	hashMap = sumsMap
 	treat(err)
 	go openTCPPort()

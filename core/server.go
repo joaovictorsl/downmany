@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/binary"
 	"fmt"
 	"log"
 	"net"
@@ -22,15 +21,16 @@ func NewServer(timeout time.Duration) *Server {
 	}
 }
 
-func (s *Server) Start(port string) error {
+func (s *Server) Start(port uint16) error {
 	log.Println("Running as server on port", port)
 
 	go s.cleanIPs()
 
-	ln, err := net.Listen("tcp", port)	
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))	
 	if err != nil { 
 		return err
 	}
+	defer ln.Close()
 
 	for {
 		conn, err := ln.Accept()
@@ -40,7 +40,6 @@ func (s *Server) Start(port string) error {
 
 		go s.handleConnection(conn)
 	}
-
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
@@ -64,16 +63,14 @@ func (s *Server) handleConnection(conn net.Conn) {
 	default:
 		fmt.Printf("Error: unknown message id %d\n", id)
 	}
-
 }
 
 func (s *Server) handleJoin(b []byte, conn net.Conn) {
-	port := binary.BigEndian.Uint16(b[5:7])
+	msg := messages.DecodeJoinSignal(b[5:7])
 	addr := conn.RemoteAddr().(*net.TCPAddr)
 
-	addr.Port = int(port)
+	addr.Port = int(msg.Port())
 	s.mapIPs[addr] = time.Now()
-	fmt.Println(addr)
 }
 
 func (s *Server) handleGetIPs(b []byte, conn net.Conn) {
@@ -88,8 +85,6 @@ func (s *Server) handleGetIPs(b []byte, conn net.Conn) {
 		ips[i] = addr
 		i++
 	}
-
-	ips[0].String()
 
 	resp := messages.NewGetIPsResponse(ips)
 	n := resp.Encode(b)

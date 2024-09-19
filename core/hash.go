@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,7 +14,7 @@ type Pair struct {
 
 // read a file from a filepath and return a slice of bytes
 func readFile(filePath string) ([]byte, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading file %s: %v", filePath, err)
 		return nil, err
@@ -38,14 +37,13 @@ func sum(filePath string, ch chan Pair) {
 }
 
 // print the totalSum for all files and the files with equal sum
-func Sum() (map[uint64]string, error) {
+func Sum(dataset string) (map[uint64]string, error) {
 	ch := make(chan Pair)
 	allSums := make(map[uint64]string)
 
-	dataset := "./dataset"
 	entries, err := os.ReadDir(dataset)
 	if err != nil {
-		log.Println("Directory './dataset' does not exist!")
+		log.Printf("Directory '%s' does not exist!\n", dataset)
 		return nil, err
 	}
 
@@ -60,5 +58,7 @@ func Sum() (map[uint64]string, error) {
 		index := v.sum
 		allSums[index] = path
 	}
+
 	return allSums, nil
 }
+
