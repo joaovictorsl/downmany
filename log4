@@ -1,0 +1,10 @@
+2024/09/19 13:25:16 Running as client
+map[109:dataset4/target 1336612229:dataset4/file.10 1336722107:dataset4/file.4 1336736857:dataset4/file.8 1336848498:dataset4/file.7 1336878636:dataset4/file.6 1336894729:dataset4/file.3 1336948979:dataset4/file.2 1337056121:dataset4/file.1 1337057668:dataset4/file.9 1337291451:dataset4/file.5]
+Escutando na porta 8004...
+[0 0 0 3 0 31 68]
+Connected with the server
+Requesting file with hash 110
+Connections with file:
+127.0.0.1:8003
+127.0.0.1:8001
+[0 0 0 3 0 31 68]

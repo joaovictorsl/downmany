@@ -8,6 +8,7 @@ make build
 echo "d" > ./dataset1/target
 echo "a" > ./dataset2/target
 echo "b" > ./dataset3/target
+echo "d" > ./dataset3/target2
 echo "c" > ./dataset4/target
 # Run server
 ./bin/downmany -server -port 8000 > log_server 2>&1 &
@@ -33,3 +34,5 @@ pid_c3=$!
 pid_c4=$!
 # Cleanup
 rm -rf dataset*
+sleep 8
+kill -9 $pid_server $pid_c1 $pid_c2 $pid_c3 $pid_c4

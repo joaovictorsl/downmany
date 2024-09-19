@@ -1,0 +1,9 @@
+2024/09/19 13:25:14 Running as client
+map[107:dataset2/target 1336685480:dataset2/file.9 1336688474:dataset2/file.7 1336723851:dataset2/file.8 1336763918:dataset2/file.10 1336785339:dataset2/file.3 1336794770:dataset2/file.6 1336831011:dataset2/file.2 1336881569:dataset2/file.4 1336930028:dataset2/file.1 1337069907:dataset2/file.5]
+Escutando na porta 8002...
+[0 0 0 3 0 31 66]
+Connected with the server
+Requesting file with hash 108
+Connections with file:
+127.0.0.1:8003
+[0 0 0 3 0 31 66]
