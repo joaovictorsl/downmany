@@ -1,3 +1,7 @@
+## Arquitetura da Rede
+
+!["Image"](rede.png)
+
 ## Comunicação cliente-servidor
 
 - Métodos
