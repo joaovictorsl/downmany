@@ -59,9 +59,19 @@ func (dpc *DowolPeerConn) Join(port uint16) error {
 	dpc.mutex.Lock()
 	defer dpc.mutex.Unlock()
 
-	signal := messages.NewJoinSignal(port)
+	signal := messages.NewJoinRequest(port)
 	n := signal.Encode(dpc.payloadBuf)
-	_, err := dpc.conn.Write(dpc.payloadBuf[1:n])
+    fmt.Println(dpc.payloadBuf[:n])
+	_, err := dpc.conn.Write(dpc.payloadBuf[:n])
+    if err != nil {
+        return err
+    }
+
+    _, err = dpc.conn.Read(dpc.payloadBuf)
+    if err != nil {
+        return err
+    }
+
 	return err
 }
 

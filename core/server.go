@@ -47,43 +47,49 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	b := make([]byte, 2048)
 
-	// Read the message
-	n, err := conn.Read(b)
-	if err != nil {
-		return
-	}
+    for {
+        // Read the message
+        n, err := conn.Read(b)
+        if err != nil {
+            return
+        }
 
-	// Decode the message
-	id := b[4]
-	switch id {
-	case messages.JOIN_MSG_ID:
-		s.handleJoin(b[:n], conn)
-	case messages.GET_IPS_MSG_ID:
-		s.handleGetIPs(b[:n], conn)
-	default:
-		fmt.Printf("Error: unknown message id %d\n", id)
-	}
+        fmt.Println("server received")
+        fmt.Println(b[:n])
+
+        // Decode the message
+        id := b[4]
+        switch id {
+        case messages.JOIN_MSG_ID:
+            s.handleJoin(b, conn)
+        case messages.GET_IPS_MSG_ID:
+            s.handleGetIPs(b, conn)
+        default:
+            fmt.Printf("Error: unknown message id %d\n", id)
+        }
+    }
 }
 
 func (s *Server) handleJoin(b []byte, conn net.Conn) {
-	msg := messages.DecodeJoinSignal(b[5:7])
+	msg := messages.DecodeJoinRequest(b[5:7])
 	addr := conn.RemoteAddr().(*net.TCPAddr)
 
 	addr.Port = int(msg.Port())
 	s.mapIPs[addr] = time.Now()
+
+    n := messages.NewJoinResponse().Encode(b)
+    conn.Write(b[:n])
 }
 
 func (s *Server) handleGetIPs(b []byte, conn net.Conn) {
-	ips := make([]*net.TCPAddr, len(s.mapIPs))
-	i := 0
+	ips := make([]*net.TCPAddr, 0, len(s.mapIPs))
 
 	for addr := range s.mapIPs {
 		if addr == conn.RemoteAddr() {
 			continue
 		}
 
-		ips[i] = addr
-		i++
+        ips = append(ips, addr)
 	}
 
 	resp := messages.NewGetIPsResponse(ips)

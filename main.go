@@ -13,11 +13,12 @@ import (
 //var fileHash uint64 = 1336902055
 
 type cliArgs struct {
-	runAsServer    bool
-	port           uint16
-	timeoutSeconds uint
-	fileHash       uint64
-	serverAddr     string
+	runAsServer     bool
+	port            uint16
+	timeoutSeconds  uint
+	fileHash        uint64
+	serverAddr      string
+	dataset         string
 }
 
 func getArgs() cliArgs {
@@ -26,6 +27,7 @@ func getArgs() cliArgs {
 	timeoutSeconds := flag.Uint("timeout", 5, "Timeout in seconds to be used when cleaning clients")
 	fileHash := flag.Uint64("file_hash", 0, "Hash of the file to be downloaded")
 	serverAddr := flag.String("server_addr", "", "Address of the tracker server")
+	dataset := flag.String("dataset", "", "Path in which files to be shared are stored")
 	flag.Parse()
 
 	if !*runAsServer {
@@ -33,6 +35,8 @@ func getArgs() cliArgs {
 			panic("Client should specify file hash for download")
 		} else if *serverAddr == "" {
 			panic("Client should specify server address")
+		} else if *dataset == "" {
+			panic("Client should specify dataset path")
 		}
 	}
 
@@ -47,6 +51,7 @@ func getArgs() cliArgs {
 		*timeoutSeconds,
 		*fileHash,
 		*serverAddr,
+        *dataset,
 	}
 }
 
@@ -60,10 +65,9 @@ func main() {
 			log.Fatal(err)
 		}
 	} else {
-		done := make(chan bool)
 		log.Println("Running as client")
 
-		ips := core.Connect(args.port)
+		ips := core.Connect(args.serverAddr, args.port, args.dataset)
 		fmt.Println("Connected with the server")
 
 		if args.fileHash != 0 {
@@ -90,6 +94,7 @@ func main() {
 			}
 		}
 
+		done := make(chan struct{})
 		<-done
 
 	}
