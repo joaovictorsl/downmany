@@ -34,3 +34,15 @@
   - lógica de comunicação
 - `main.go`
   - script para iniciar servidor ou cliente
+
+
+
+## Docker
+
+Buildar imagem
+`docker build -t downmany:1.0 .`
+
+Executar imagem
+`docker run -p 3000:3000 -it downmany:1.0 ./bin/downmany -file_hash 123 -server_addr 127.0.0.1:8000 -port 1234`
+
+TODO: docker-compose para subir 3 clientes e um servidor em portas diferentes. Adicionar volume para mapear a pasta /dataset

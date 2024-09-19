@@ -1,0 +1,54 @@
+version: '3.7'
+services:
+  postgres:
+    image: postgres:16.2-alpine3.19
+    container_name: db-meu-ru
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - 'db:/var/lib/postgresql/data'
+    networks:
+      - common-network
+
+  meu-ru:
+    build:
+      context: .
+    container_name: meu-ru
+    ports:
+      - 3000:3000
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - PORT=3000
+      - ENVIRONMENT=development
+      - ACCESS_TOKEN_SECRET=randomstring
+      - REFRESH_TOKEN_SECRET=anotherrandomstring
+      - STI_URL=https://api.hom.sti.ufcg.edu.br/ufcg/
+    depends_on:
+      - postgres
+    networks:
+      - common-network
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:8.7
+    depends_on:
+      - postgres
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - 5431:80
+    networks:
+      - common-network
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+
+networks:
+  common-network:
+    driver: bridge
+
+volumes:
+  db:
+  pgadmindata:
